@@ -8,47 +8,72 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"os/exec"
 	"strings"
 )
 
 type OllamaRequest struct {
 	Model  string `json:"model"`
 	Prompt string `json:"prompt"`
+	Stream bool   `json:"stream"` // Added to control streaming
 }
 
 type OllamaResponse struct {
 	Response string `json:"response"`
+	Done     bool   `json:"done"`
+}
+
+type PromptRequest struct {
+	Prompt string `json:"prompt" binding:"required"`
 }
 
 func main() {
-	fmt.Printf("Enter your request: ")
+	fmt.Printf("Enter your request (or 'quit' to exit): ")
 	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
-	query := scanner.Text()
 
-	kubectlCommand := generateKubectlCommand(query)
+	for scanner.Scan() {
+		input := strings.TrimSpace(scanner.Text())
 
-	fmt.Printf("--> : %s\n", kubectlCommand)
-	fmt.Printf("Press Enter to execute or Ctrl+C to cancel")
-	scanner.Scan()
+		if input == "quit" {
+			fmt.Println("Exiting...")
+			return
+		}
 
-	executeKubectlCommand(kubectlCommand)
+		if input == "" {
+			fmt.Println("Error: Prompt cannot be empty.")
+			continue
+		}
+
+		kubectlCommand := generateKubectlCommand(input)
+		if kubectlCommand == "" {
+			fmt.Println("Failed to generate kubectl command")
+		} else {
+			fmt.Printf("--> : %s\n", kubectlCommand)
+		}
+
+		fmt.Printf("\nEnter your request (or 'quit' to exit): ")
+	}
 }
 
 func generateKubectlCommand(query string) string {
 	ollamaUrl := "http://localhost:11434/api/generate"
 
-	body := []byte(`{
-		"model": "mistral",
-		"prompt": "Strictly return only a valid kubectl command as plain text. No explanations, no newlines, no formatting: ` + query + `",
-		"stream": false,
-		"format": "json"
-	}`)
+	// Create the request payload
+	request := OllamaRequest{
+		Model:  "mistral", // Adjust model name as needed
+		Prompt: "Generate only a kubectl command (starting with 'kubectl ') for this request and nothing else. No explanation, no description, only command: " + query,
+		Stream: false, // Disable streaming for simpler response handling
+	}
+
+	body, err := json.Marshal(request)
+	if err != nil {
+		fmt.Printf("Error marshaling request: %s\n", err)
+		return ""
+	}
 
 	r, err := http.NewRequest("POST", ollamaUrl, bytes.NewBuffer(body))
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error creating request: %s\n", err)
+		return ""
 	}
 
 	r.Header.Add("Content-Type", "application/json")
@@ -56,20 +81,23 @@ func generateKubectlCommand(query string) string {
 	client := &http.Client{}
 	res, err := client.Do(r)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error sending request: %s\n", err)
+		return ""
 	}
 	defer res.Body.Close()
 
-	// Read raw response
+	// Read the full response
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error reading response: %s\n", err)
+		return ""
 	}
-	fmt.Println("Raw response from Ollama:", string(bodyBytes)) // Debugging
 
-	var response struct {
-		Response string `json:"response"`
-	}
+	// Print raw response for debugging
+	fmt.Printf("Raw Ollama response: %s\n", string(bodyBytes))
+
+	// Parse the response
+	var response OllamaResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
 		fmt.Printf("Error parsing Ollama response: %s\n", err)
 		return ""
@@ -83,19 +111,4 @@ func generateKubectlCommand(query string) string {
 	}
 
 	return command
-}
-
-func executeKubectlCommand(cmdStr string) {
-	if cmdStr == "" {
-		fmt.Println("Error: empty command")
-		return
-	}
-
-	parts := strings.Fields(cmdStr)
-	cmd := exec.Command(parts[0], parts[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		fmt.Printf("Error executing command: %s\n", err)
-	}
 }
