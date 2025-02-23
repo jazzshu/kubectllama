@@ -39,13 +39,13 @@ func main() {
 
 	// Create the root command using cobra
 	var rootCmd = &cobra.Command{
-		Use:   "kllama",
-		Short: "kllama is a CLI tool to generate kubectl commands using AI",
-		Long:  `kllama generates kubectl commands based on natural language input, using AI models to understand your requests.`,
+		Use:   "kubectllama",
+		Short: "kubectllama is a CLI tool to generate kubectl commands using AI",
+		Long:  `kubectllama generates kubectl commands based on natural language input, using AI models to understand your requests.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Ensure there is a query argument
 			if len(args) < 1 {
-				fmt.Println("Usage: kllama <natural language request>")
+				fmt.Println("Usage: kubectllama <natural language request>")
 				os.Exit(1)
 			}
 
