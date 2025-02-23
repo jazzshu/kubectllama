@@ -5,7 +5,7 @@ OS=$(uname -s)
 ARCH=$(uname -m)
 
 # Set the output binary name
-BINARY_NAME="my-cli"
+BINARY_NAME="kubectllama"
 
 # Define a function to build for each OS
 build_for_os() {
