@@ -20,39 +20,36 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
 
-      - name: Determine next version
-        id: version
-        run: |
-          latest_tag=$(git describe --tags --abbrev=0 || echo "v0.0.0")
-          new_version=$(echo $latest_tag | awk -F. -v OFS=. '{$NF++; print}')
-          echo "new_version=$new_version" >> $GITHUB_ENV
-
-      - name: Create Git Tag
-        run: |
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          git tag ${{ env.new_version }}
-          git push origin ${{ env.new_version }}
-
       - name: Build CLI binary
         run: |
           GOOS=linux GOARCH=amd64 go build -o kllama-linux-amd64 .
           GOOS=darwin GOARCH=amd64 go build -o kllama-macos-amd64 .
           GOOS=windows GOARCH=amd64 go build -o kllama-windows-amd64.exe .
-
-      - name: Create GitHub Release
+        
+      - name: Set up Node.js for sem-rel
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install SemRel
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+      
+      - name: Upload assets
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.new_version }}
-          name: Release ${{ env.new_version }}
-          body: "New release of kllama CLI."
           files: |
             kllama-linux-amd64
             kllama-macos-amd64
             kllama-windows-amd64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
