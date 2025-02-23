@@ -48,8 +48,8 @@ jobs:
         with:
           tag_name: ${{ steps.semantic.outputs.new_release_git_tag }}  # Use the tag from semantic-release
           files: |
-            kllama-linux-amd64
-            kllama-macos-amd64
-            kllama-windows-amd64.exe
+            kubectllama-linux-amd64
+            kubectllama-macos-amd64
+            kubectllama-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
