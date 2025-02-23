@@ -44,8 +44,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Upload assets
+        if: steps.semantic.outputs.new_release_published == 'true'  # Only run if a release was created
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.semantic.outputs.new_release_git_tag }}  # Use the tag from semantic-release
           files: |
             kllama-linux-amd64
             kllama-macos-amd64
