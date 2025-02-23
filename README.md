@@ -7,13 +7,13 @@ Welcome to **kubectllama**! 🐾 The AI-powered CLI tool that takes your Kuberne
 ## 🌟 Features
 
 - 🗣️ **Natural Language Processing**: Simply type commands like "Get all pods in the default namespace" and let **kubectllama** do the magic.
-- ⚡ **Fast & Efficient**: Execute `kubectl` commands with minimal effort and increased productivity.
+- ⚡ **Fast & Efficient**: Get complex `kubectl` commands with minimal effort and increased productivity.
 - 🔒 **Safe & Secure**: Your AI assistant lives locally on your machine, ensuring your commands are processed securely.
 - 💬 **Confirmation Step**: the cli doesn't execute any command, **kubectllama** will only display the suggested command so to prevent unwanted actions.
 
 ---
 
-## Installation
+## 🛠️ Installation
 
 `kubectllama` can be installed either by downloading a pre-built executable from GitHub Releases or by cloning the repository and building from source. Below are instructions for both methods.
 
@@ -61,7 +61,7 @@ move kubectllama-windows-amd64.exe C:\Windows\System32\kubectllama.exe
 kubectllama --help
 ```
 
-### Method 1: Clone and Build from Source
+### Method 2: Clone and Build from Source
 If you prefer to build kubectllama yourself or want to modify the code:
 
 1. **Clone the repository**:
@@ -89,7 +89,7 @@ chmod +x /usr/local/bin/kubectllama
 kubectllama --help
 ```
 
-### Usage
+## 🚀 Usage
 After installation, run ```kubectllama``` with a natural language request:
 
 ```bash
