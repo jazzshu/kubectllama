@@ -30,8 +30,12 @@ type OllamaErrorResponse struct {
 	Error string `json:"error"`
 }
 
+// Create a channel to control the thinking animation
+var stopAnimation chan bool
+
 func main() {
 	var model string
+	var ollamaUrl string
 
 	// Create the root command using cobra
 	var rootCmd = &cobra.Command{
@@ -48,13 +52,21 @@ func main() {
 			// Get the query (the rest of the args)
 			query := strings.Join(args, " ")
 
-			// Show thinking animation while waiting for response
+			// Initialize the stop channel
+			// This channel sends a true when the Ollama API responds.
+			// When the goroutine receives the "true" it stops the goroutine
+			// aka stops the animation
+			stopAnimation = make(chan bool)
+
+			// Start the thinking animation.
+			// This is a goroutine
 			go showThinkingAnimation()
 
-			kubectlCommand := generateKubectlCommand(query, model)
+			kubectlCommand := generateKubectlCommand(query, model, ollamaUrl)
 
-			// Stop the animation once the command is generated
-			stopThinkingAnimation()
+			// Stop the animation and clear the line
+			stopAnimation <- true
+			fmt.Printf("\r%s\r", strings.Repeat(" ", 50)) // Clear the line
 
 			fmt.Printf("--> %s\n", kubectlCommand)
 		},
@@ -62,6 +74,7 @@ func main() {
 
 	// Add the --model flag to the root command
 	rootCmd.PersistentFlags().StringVarP(&model, "model", "m", "mistral", "Specify the AI model to use (default: mistral)")
+	rootCmd.PersistentFlags().StringVarP(&ollamaUrl, "url", "u", "http://localhost:11434", "Specify the Ollama API URL (default: http://localhost:11434)")
 
 	// Execute the root command
 	if err := rootCmd.Execute(); err != nil {
@@ -70,9 +83,11 @@ func main() {
 	}
 }
 
-func generateKubectlCommand(query string, model string) string {
-	ollamaUrl := "http://localhost:11434/api/generate"
-
+func generateKubectlCommand(query string, model string, ollamaUrl string) string {
+	// Ensure the URL ends with the correct endpoint
+	if !strings.HasSuffix(ollamaUrl, "/api/generate") {
+		ollamaUrl = strings.TrimSuffix(ollamaUrl, "/") + "/api/generate"
+	}
 	// Create the request payload
 	request := OllamaRequest{
 		Model:  model,
@@ -150,19 +165,28 @@ func generateKubectlCommand(query string, model string) string {
 	return command
 }
 
-// Show thinking animation (dots)
+// goroutine to show animation while in background API is sending the response
 func showThinkingAnimation() {
 	thinkingText := "Thinking of the kubectl command"
 	dots := []string{".", "..", "..."}
 	for {
-		for _, dot := range dots {
-			fmt.Printf("\r%s%s", thinkingText, dot)
-			time.Sleep(500 * time.Millisecond)
+		select {
+		// if channel stopAnimation sends true, stop the animation and return
+		case <-stopAnimation:
+			return
+		// else keep running the goroutine
+		default:
+			// loop through the dots and don't stop until you receive (<- stopAnimation)
+			// a true from the channel
+			for _, dot := range dots {
+				select {
+				case <-stopAnimation:
+					return
+				default:
+					fmt.Printf("\r%s%s", thinkingText, dot)
+					time.Sleep(500 * time.Millisecond)
+				}
+			}
 		}
 	}
-}
-
-// Stop thinking animation by clearing the line
-func stopThinkingAnimation() {
-	fmt.Printf("\r%s Done!               \n", "Thinking of the kubectl command")
 }
