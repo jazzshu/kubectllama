@@ -11,13 +11,13 @@ BINARY_NAME="kubectllama"
 build_for_os() {
   case $OS in
     Linux)
-      GOOS=linux GOARCH=$ARCH go build -o $BINARY_NAME-linux
+      GOOS=linux GOARCH=amd64 go build -o $BINARY_NAME-linux
       ;;
     Darwin)
-      GOOS=darwin GOARCH=$ARCH go build -o $BINARY_NAME-darwin
+      GOOS=darwin GOARCH=amd64 go build -o $BINARY_NAME-darwin
       ;;
     CYGWIN*|MINGW*)
-      GOOS=windows GOARCH=$ARCH go build -o $BINARY_NAME.exe
+      GOOS=windows GOARCH=amd64 go build -o $BINARY_NAME.exe
       ;;
     *)
       echo "Unsupported OS: $OS"
@@ -31,16 +31,17 @@ echo "Building for $OS ($ARCH)..."
 build_for_os
 
 # Define the directory for global installation (usually /usr/local/bin for Linux/macOS)
-INSTALL_DIR="/usr/local/bin"
+INSTALL_DIR="$HOME/bin"  # Change this to a directory you have write access to
+mkdir -p $INSTALL_DIR
 
 # Move the appropriate binary to the installation directory
 echo "Moving binary to $INSTALL_DIR..."
 
-if [[ $OS == "Linux" ]]; then
+if [ "$OS" == "Linux" ]; then
   mv $BINARY_NAME-linux $INSTALL_DIR/$BINARY_NAME
-elif [[ $OS == "Darwin" ]]; then
+elif [ "$OS" == "Darwin" ]; then
   mv $BINARY_NAME-darwin $INSTALL_DIR/$BINARY_NAME
-elif [[ $OS == "CYGWIN"* || $OS == "MINGW"* ]]; then
+elif [ "$OS" == "CYGWIN"* ] || [ "$OS" == "MINGW"* ]; then
   mv $BINARY_NAME.exe $INSTALL_DIR/$BINARY_NAME.exe
 fi
 
