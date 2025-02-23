@@ -5,7 +5,7 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev" ]
   pull_request:
     branches: [ "main" ]
 
@@ -30,9 +30,9 @@ jobs:
 
       - name: Build CLI binary
         run: |
-          GOOS=linux GOARCH=amd64 go build -o kllama-linux-amd64 .
-          GOOS=darwin GOARCH=amd64 go build -o kllama-macos-amd64 .
-          GOOS=windows GOARCH=amd64 go build -o kllama-windows-amd64.exe .
+          GOOS=linux GOARCH=amd64 go build -o kubectllama-linux-amd64 .
+          GOOS=darwin GOARCH=amd64 go build -o kubectllama-macos-amd64 .
+          GOOS=windows GOARCH=amd64 go build -o kubectllama-windows-amd64.exe .
 
       - name: Semantic Release
         id: semantic
@@ -48,8 +48,8 @@ jobs:
         with:
           tag_name: ${{ steps.semantic.outputs.new_release_git_tag }}  # Use the tag from semantic-release
           files: |
-            kllama-linux-amd64
-            kllama-macos-amd64
-            kllama-windows-amd64.exe
+            kubectllama-linux-amd64
+            kubectllama-macos-amd64
+            kubectllama-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
