@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -23,36 +22,16 @@ type OllamaResponse struct {
 	Done     bool   `json:"done"`
 }
 
-type PromptRequest struct {
-	Prompt string `json:"prompt" binding:"required"`
-}
-
 func main() {
-	fmt.Printf("Enter your request (or 'quit' to exit): ")
-	scanner := bufio.NewScanner(os.Stdin)
-
-	for scanner.Scan() {
-		input := strings.TrimSpace(scanner.Text())
-
-		if input == "quit" {
-			fmt.Println("Exiting...")
-			return
-		}
-
-		if input == "" {
-			fmt.Println("Error: Prompt cannot be empty.")
-			continue
-		}
-
-		kubectlCommand := generateKubectlCommand(input)
-		if kubectlCommand == "" {
-			fmt.Println("Failed to generate kubectl command")
-		} else {
-			fmt.Printf("--> : %s\n", kubectlCommand)
-		}
-
-		fmt.Printf("\nEnter your request (or 'quit' to exit): ")
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: query <natural language request>")
+		os.Exit(1)
 	}
+
+	query := strings.Join(os.Args[1:], " ")
+	kubectlCommand := generateKubectlCommand(query)
+
+	fmt.Printf("--> %s\n", kubectlCommand)
 }
 
 func generateKubectlCommand(query string) string {
