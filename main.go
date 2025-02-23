@@ -15,6 +15,7 @@ type OllamaRequest struct {
 	Model  string `json:"model"`
 	Prompt string `json:"prompt"`
 	Stream bool   `json:"stream"` // Added to control streaming
+	System string `json:"system"`
 }
 
 type OllamaResponse struct {
@@ -62,6 +63,7 @@ func generateKubectlCommand(query string) string {
 		Model:  "mistral", // Adjust model name as needed
 		Prompt: "Generate only a kubectl command (starting with 'kubectl ') for this request and nothing else. No explanation, no description, only command: " + query,
 		Stream: false, // Disable streaming for simpler response handling
+		System: "You are an expert kubectl command generator, that only generates valid kubectl commands. You should never provide any explanations. You should always output raw shell commands as text with ```. You can use this documentation as reference https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands",
 	}
 
 	body, err := json.Marshal(request)
@@ -94,7 +96,7 @@ func generateKubectlCommand(query string) string {
 	}
 
 	// Print raw response for debugging
-	fmt.Printf("Raw Ollama response: %s\n", string(bodyBytes))
+	// fmt.Printf("Raw Ollama response: %s\n", string(bodyBytes))
 
 	// Parse the response
 	var response OllamaResponse
@@ -103,8 +105,16 @@ func generateKubectlCommand(query string) string {
 		return ""
 	}
 
-	// Ensure response contains a valid kubectl command
+	// Clean and extract the command
 	command := strings.TrimSpace(response.Response)
+
+	// Remove surrounding triple backticks if present
+	command = strings.TrimPrefix(command, "```")
+	command = strings.TrimSuffix(command, "```")
+	command = strings.TrimSpace(command) // Ensure no leading/trailing spaces
+
+	// Ensure response contains a valid kubectl command
+	// Validate that it's a kubectl command
 	if !strings.HasPrefix(command, "kubectl ") {
 		fmt.Println("Invalid command received:", command)
 		return ""
