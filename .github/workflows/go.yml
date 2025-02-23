@@ -39,18 +39,7 @@ jobs:
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v4
         with:
-          branches: |
-            [
-              "main",
-              {
-                "name": "alpha",
-                "prerelease": true
-              },
-              {
-                "name": "*",
-                "prerelease": "rc"
-              }
-            ]
+          semantic_version: 21.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
