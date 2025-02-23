@@ -34,15 +34,25 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -o kllama-macos-amd64 .
           GOOS=windows GOARCH=amd64 go build -o kllama-windows-amd64.exe .
         
-      - name: Set up Node.js for sem-rel
-        uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
         with:
-          node-version: '20'
-      
-      - name: Install SemRel
+          branches: |
+            [
+              "main",
+              {
+                "name": "alpha",
+                "prerelease": true
+              },
+              {
+                "name": "*",
+                "prerelease": "rc"
+              }
+            ]
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
       
       - name: Upload assets
         uses: softprops/action-gh-release@v2
