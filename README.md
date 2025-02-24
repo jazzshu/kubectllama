@@ -30,7 +30,7 @@ Welcome to **kubectllama**! 🐾 The AI-powered CLI tool that takes your Kuberne
 - **Go**: Required only for building from source (version 1.21+).
 
 ### Method 1: Download Pre-Built Executable
-Pre-built binaries are available for Linux, macOS, and Windows from the [GitHub Releases page](https://github.com/your-username/kllama/releases). Since the repository is public, no authentication is needed.
+Pre-built binaries are available for Linux, macOS, and Windows from the [GitHub Releases page](https://github.com/jazzshu/kubectllama/releases). Since the repository is public, no authentication is needed.
 
 #### Linux
 ```bash
