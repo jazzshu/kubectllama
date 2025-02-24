@@ -35,7 +35,7 @@ Pre-built binaries are available for Linux, macOS, and Windows from the [GitHub 
 #### Linux
 ```bash
 curl -L -o kubectllama \
- https://github.com/JasonShuyinta/kubectllama/releases/latest/download/kubectllama-linux-amd64
+ https://github.com/jazzshu/kubectllama/releases/latest/download/kubectllama-linux-amd64
 chmod +x kubectllama
 sudo mv kubectllama /usr/local/bin/
 ```
@@ -43,7 +43,7 @@ sudo mv kubectllama /usr/local/bin/
 #### macOS
 ```bash
 curl -L -o kubectllama \
-     https://github.com/JasonShuyinta/kubectllama/releases/latest/download/kubectllama-macos-amd64
+     https://github.com/jazzshu/kubectllama/releases/latest/download/kubectllama-macos-amd64
 chmod +x kubectllama
 sudo mv kubectllama /usr/local/bin/
 ```
@@ -66,7 +66,7 @@ If you prefer to build kubectllama yourself or want to modify the code:
 
 1. **Clone the repository**:
 ```bash
-git clone https://github.com/JasonShuyinta/kubectllama.git
+git clone https://github.com/jazzshu/kubectllama.git
 cd kubectllama
 ```
 
