@@ -28,12 +28,6 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Build CLI binary
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o kubectllama-linux-amd64 .
-          GOOS=darwin GOARCH=amd64 go build -o kubectllama-macos-amd64 .
-          GOOS=windows GOARCH=amd64 go build -o kubectllama-windows-amd64.exe .
-
       - name: Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
@@ -41,7 +35,14 @@ jobs:
           semantic_version: 21.1.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+
+      - name: Build CLI binary
+        if: steps.semantic.outputs.new_release_published == 'true'  # Only run if a release was created
+        run: |
+          GOOS=linux GOARCH=amd64 go build -o kubectllama-linux-amd64 .
+          GOOS=darwin GOARCH=amd64 go build -o kubectllama-macos-amd64 .
+          GOOS=windows GOARCH=amd64 go build -o kubectllama-windows-amd64.exe .
+            
       - name: Upload assets
         if: steps.semantic.outputs.new_release_published == 'true'  # Only run if a release was created
         uses: softprops/action-gh-release@v2
