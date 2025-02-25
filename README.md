@@ -30,12 +30,12 @@ Welcome to **kubectllama**! 🐾 The AI-powered CLI tool that takes your Kuberne
 - **Go**: Required only for building from source (version 1.21+).
 
 ### Method 1: Download Pre-Built Executable
-Pre-built binaries are available for Linux, macOS, and Windows from the [GitHub Releases page](https://github.com/jazzshu/kubectllama/releases). Since the repository is public, no authentication is needed.
+Pre-built binaries are available for Linux, macOS, and Windows from the [GitHub Releases page](https://github.com/your-username/kllama/releases). Since the repository is public, no authentication is needed.
 
 #### Linux
 ```bash
 curl -L -o kubectllama \
- https://github.com/jazzshu/kubectllama/releases/latest/download/kubectllama-linux-amd64
+ https://github.com/JasonShuyinta/kubectllama/releases/latest/download/kubectllama-linux-amd64
 chmod +x kubectllama
 sudo mv kubectllama /usr/local/bin/
 ```
@@ -43,7 +43,7 @@ sudo mv kubectllama /usr/local/bin/
 #### macOS
 ```bash
 curl -L -o kubectllama \
-     https://github.com/jazzshu/kubectllama/releases/latest/download/kubectllama-macos-amd64
+     https://github.com/JasonShuyinta/kubectllama/releases/latest/download/kubectllama-macos-amd64
 chmod +x kubectllama
 sudo mv kubectllama /usr/local/bin/
 ```
@@ -66,7 +66,7 @@ If you prefer to build kubectllama yourself or want to modify the code:
 
 1. **Clone the repository**:
 ```bash
-git clone https://github.com/jazzshu/kubectllama.git
+git clone https://github.com/JasonShuyinta/kubectllama.git
 cd kubectllama
 ```
 
