@@ -39,9 +39,9 @@ jobs:
       - name: Build CLI binary
         if: steps.semantic.outputs.new_release_published == 'true'  # Only run if a release was created
         run: |
-          GOOS=linux GOARCH=amd64 go build -o kubectllama-linux-amd64 .
-          GOOS=darwin GOARCH=amd64 go build -o kubectllama-macos-amd64 .
-          GOOS=windows GOARCH=amd64 go build -o kubectllama-windows-amd64.exe .
+          GOOS=linux GOARCH=amd64 go build -o kubectllama-linux-amd64 ./cmd/main.go
+          GOOS=darwin GOARCH=amd64 go build -o kubectllama-macos-amd64 ./cmd/main.go
+          GOOS=windows GOARCH=amd64 go build -o kubectllama-windows-amd64.exe ./cmd/main.go
             
       - name: Upload assets
         if: steps.semantic.outputs.new_release_published == 'true'  # Only run if a release was created
