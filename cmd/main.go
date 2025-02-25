@@ -168,7 +168,7 @@ func generateKubectlCommand(query string, model string, ollamaUrl string) string
 // goroutine to show animation while in background API is sending the response
 func showThinkingAnimation() {
 	thinkingText := "Thinking of the kubectl command"
-	dots := []string{".", "..", "..."}
+	dots := []string{".", "..", "...", "....", "....."}
 	for {
 		select {
 		// if channel stopAnimation sends true, stop the animation and return
