@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -62,13 +64,38 @@ func main() {
 			// This is a goroutine
 			go showThinkingAnimation()
 
-			kubectlCommand := generateKubectlCommand(query, model, ollamaUrl)
+			kubectlCommand, description := generateKubectlCommand(query, model, ollamaUrl)
 
 			// Stop the animation and clear the line
 			stopAnimation <- true
 			fmt.Printf("\r%s\r", strings.Repeat(" ", 50)) // Clear the line
 
-			fmt.Printf("--> %s\n", kubectlCommand)
+			fmt.Printf("\033[32m%s\033[0m\n", kubectlCommand) // Command in green
+			fmt.Printf("%s\n", description)
+
+			reader := bufio.NewReader(os.Stdin)
+			for {
+				fmt.Printf("Execute this command? [Y/n] ")
+				input, _ := reader.ReadString('\n')
+				input = strings.TrimSpace(strings.ToLower(input))
+
+				switch input {
+				case "y", "yes", "":
+					// Execute kubectl command
+					execCmd := exec.Command("kubectl", strings.Fields(kubectlCommand)[1:]...)
+					execCmd.Stdout = os.Stdout
+					execCmd.Stderr = os.Stderr
+					if err := execCmd.Run(); err != nil {
+						fmt.Printf("Error executing command: %s\n", err)
+					}
+					return // Exit after execution
+				case "n", "no":
+					os.Exit(0)
+				default:
+					fmt.Println("Invalid input. Please enter 'Y' or 'n'.")
+					continue
+				}
+			}
 		},
 	}
 
@@ -83,7 +110,7 @@ func main() {
 	}
 }
 
-func generateKubectlCommand(query string, model string, ollamaUrl string) string {
+func generateKubectlCommand(query string, model string, ollamaUrl string) (command string, description string) {
 	// Ensure the URL ends with the correct endpoint
 	if !strings.HasSuffix(ollamaUrl, "/api/generate") {
 		ollamaUrl = strings.TrimSuffix(ollamaUrl, "/") + "/api/generate"
@@ -91,21 +118,21 @@ func generateKubectlCommand(query string, model string, ollamaUrl string) string
 	// Create the request payload
 	request := OllamaRequest{
 		Model:  model,
-		Prompt: "Generate only a kubectl command (starting with 'kubectl ') for this request and nothing else. No explanation, no description, only command: " + query,
+		Prompt: "Generate a kubectl command (starting with 'kubectl ') for this request and then on a new line, give a one line explanation of the kubectl command: " + query,
 		Stream: false, // Disable streaming for simpler response handling
-		System: "You are an expert kubectl command generator, that only generates valid kubectl commands. You should never provide any explanations. You should always output raw shell commands as text with ```. You can use this documentation as reference https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands",
+		System: "You are an expert kubectl command generator, that generates only valid kubectl command. You should never provide any links or request for any additional prompts. You must use this documentation as reference https://kubernetes.io/docs/reference/generated/kubectl/kubectl-commands",
 	}
 
 	body, err := json.Marshal(request)
 	if err != nil {
 		fmt.Printf("Error marshaling request: %s\n", err)
-		return ""
+		return "", ""
 	}
 
 	r, err := http.NewRequest("POST", ollamaUrl, bytes.NewBuffer(body))
 	if err != nil {
 		fmt.Printf("Error creating request: %s\n", err)
-		return ""
+		return "", ""
 	}
 
 	r.Header.Add("Content-Type", "application/json")
@@ -114,7 +141,7 @@ func generateKubectlCommand(query string, model string, ollamaUrl string) string
 	res, err := client.Do(r)
 	if err != nil {
 		fmt.Printf("Error sending request: %s\n", err)
-		return ""
+		return "", ""
 	}
 	defer res.Body.Close()
 
@@ -122,8 +149,11 @@ func generateKubectlCommand(query string, model string, ollamaUrl string) string
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Printf("Error reading response: %s\n", err)
-		return ""
+		return "", ""
 	}
+
+	// Use for debugging
+	// fmt.Printf("Raw Ollama response: %s\n", string(bodyBytes))
 
 	// First try to unmarshal as an error response
 	var errorResponse OllamaErrorResponse
@@ -137,56 +167,46 @@ func generateKubectlCommand(query string, model string, ollamaUrl string) string
 		}
 		// Handle other types of errors
 		fmt.Printf("\rError from Ollama: %s\n", errorResponse.Error)
-		return ""
+		return "", ""
 	}
 
 	// Parse the response
 	var response OllamaResponse
 	if err := json.Unmarshal(bodyBytes, &response); err != nil {
 		fmt.Printf("Error parsing Ollama response: %s\n", err)
-		return ""
+		return "", ""
 	}
 
 	// Clean and extract the command
-	command := strings.TrimSpace(response.Response)
+	modelResponse := strings.TrimSpace(response.Response)
 
-	// Remove surrounding triple backticks if present
-	command = strings.TrimPrefix(command, "```")
-	command = strings.TrimSuffix(command, "```")
-	command = strings.TrimSpace(command) // Ensure no leading/trailing spaces
-
-	// Ensure response contains a valid kubectl command
-	// Validate that it's a kubectl command
-	if !strings.HasPrefix(command, "kubectl ") {
-		fmt.Println("Invalid command received:", command)
-		return ""
+	lines := strings.SplitN(modelResponse, "\n\n", 2)
+	command = strings.TrimSpace(strings.Trim(lines[0], "`")) //Remove backticks
+	description = ""
+	if len(lines) > 1 {
+		description = strings.TrimSpace(lines[1])
 	}
 
-	return command
+	return command, description
 }
 
 // goroutine to show animation while in background API is sending the response
 func showThinkingAnimation() {
-	thinkingText := "Thinking of the kubectl command"
-	dots := []string{".", "..", "...", "....", "....."}
+	spinner := []string{"|", "/", "-", "\\"}
+	thinkingText := "Generating kubectl command "
+	i := 0
 	for {
 		select {
 		// if channel stopAnimation sends true, stop the animation and return
 		case <-stopAnimation:
+			fmt.Printf("\r%s... Done! 	\n", thinkingText)
 			return
 		// else keep running the goroutine
 		default:
-			// loop through the dots and don't stop until you receive (<- stopAnimation)
-			// a true from the channel
-			for _, dot := range dots {
-				select {
-				case <-stopAnimation:
-					return
-				default:
-					fmt.Printf("\r%s%s", thinkingText, dot)
-					time.Sleep(500 * time.Millisecond)
-				}
-			}
+			// Print the spinner with carriage return so it updates in place.
+			fmt.Printf("\r%s%s", thinkingText, spinner[i%len(spinner)])
+			i++
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
