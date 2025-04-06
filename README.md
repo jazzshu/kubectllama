@@ -58,7 +58,7 @@ move kubectllama-windows-amd64.exe C:\Windows\System32\kubectllama.exe
 
 #### Verify Installation
 ```bash
-kubectllama --help
+kubectllama --version
 ```
 
 ### Method 2: Clone and Build from Source
@@ -98,7 +98,9 @@ kubectllama get pods running in the test namespace
 
 Output (using default ```mistral``` model):
 ```bash
---> kubectl get pods -n test
+kubectl get pods -n test
+This command retrieves information about all running pods across the "test" in your Kubernetes cluster.
+Execute this command? [Y/n]
 ```
 
 To use a different model, specify it with the ```--model``` flag:
