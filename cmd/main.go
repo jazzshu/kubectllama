@@ -40,8 +40,6 @@ func main() {
 	var model string
 	var ollamaUrl string
 
-	var version = "dev"
-
 	// Create the root command using cobra
 	var rootCmd = &cobra.Command{
 		Use:     "kubectllama",
