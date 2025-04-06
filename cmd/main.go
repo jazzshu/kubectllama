@@ -39,11 +39,14 @@ func main() {
 	var model string
 	var ollamaUrl string
 
+	var version = "dev"
+
 	// Create the root command using cobra
 	var rootCmd = &cobra.Command{
-		Use:   "kubectllama",
-		Short: "kubectllama is a CLI tool to generate kubectl commands using AI",
-		Long:  `kubectllama generates kubectl commands based on natural language input, using AI models to understand your requests.`,
+		Use:     "kubectllama",
+		Short:   "kubectllama is a CLI tool to generate kubectl commands using AI",
+		Long:    `kubectllama generates kubectl commands based on natural language input, using AI models to understand your requests.`,
+		Version: version,
 		Run: func(cmd *cobra.Command, args []string) {
 			// Ensure there is a query argument
 			if len(args) < 1 {
