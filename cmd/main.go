@@ -34,12 +34,11 @@ type OllamaErrorResponse struct {
 
 // Create a channel to control the thinking animation
 var stopAnimation chan bool
+var version = "dev"
 
 func main() {
 	var model string
 	var ollamaUrl string
-
-	var version = "dev"
 
 	// Create the root command using cobra
 	var rootCmd = &cobra.Command{
