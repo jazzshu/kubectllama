@@ -34,6 +34,7 @@ type OllamaErrorResponse struct {
 
 // Create a channel to control the thinking animation
 var stopAnimation chan bool
+var version = "dev"
 
 func main() {
 	var model string
